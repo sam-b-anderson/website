@@ -25,7 +25,8 @@ export default function Home() {
         <section style={{ marginTop: "clamp(4rem, 10vh, 8rem)" }}>
           <HeroName />
           <p className="context mt-5">
-            Building the platform for physical decision-making at Bricks.
+            Building digital products that shape how the physical world
+            operates.
           </p>
         </section>
 
