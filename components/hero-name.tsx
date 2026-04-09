@@ -18,7 +18,8 @@ const WEIGHTS = [
 
 /* Timing tunables */
 const STEP_FORWARD_MS = 200; // ms between each decay step
-const STEP_REVERSE_MS = 100; // ms between each recovery step
+const STEP_REVERSE_MS = 250; // ms between each recovery step (25% slower than forward)
+const HOLD_BEFORE_REVERSE_MS = 1000; // ms to hold at decay before reversing
 
 export function HeroName() {
   const layersRef = useRef<HTMLSpanElement[]>([]);
@@ -77,8 +78,11 @@ export function HeroName() {
 
   const onLeave = useCallback(() => {
     if (!canAnimate.current) return;
-    stepTo(0);
-  }, [stepTo]);
+    stopStepping();
+    stepping.current = setTimeout(() => {
+      stepTo(0);
+    }, HOLD_BEFORE_REVERSE_MS);
+  }, [stepTo, stopStepping]);
 
   return (
     <h1
