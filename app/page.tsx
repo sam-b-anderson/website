@@ -1,37 +1,36 @@
 import Link from "next/link";
-import { Flashlight } from "@/components/flashlight";
+import { HeroName } from "@/components/hero-name";
 
 export default function Home() {
   return (
-    <main className="relative min-h-dvh" style={{ background: "var(--color-bg)" }}>
-      <Flashlight />
-
+    <main
+      className="paper-bg relative min-h-dvh"
+      style={{ background: "var(--color-bg)" }}
+    >
       <div
-        className="front-door relative z-10 mx-auto flex min-h-dvh flex-col justify-between"
+        className="front-door relative z-10 mx-auto flex min-h-dvh flex-col"
         style={{
           maxWidth: "56rem",
           padding: "clamp(2rem, 4vw, 4rem)",
         }}
       >
-        {/* Top row — eyebrow + metadata */}
-        <header className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
-          <p className="eyebrow font-mono">Sam Anderson</p>
-          <p className="eyebrow font-mono">sambanderson.com &middot; EST. 2026</p>
+        {/* Top row — metadata only, right-aligned */}
+        <header className="flex justify-end">
+          <p className="eyebrow font-mono">
+            sambanderson.com &middot; EST. 2026
+          </p>
         </header>
 
-        {/* Middle — tagline + context */}
-        <section className="my-auto py-16">
-          {/* PLACEHOLDER TAGLINE — Sam will rewrite after seeing it live */}
-          <h1 className="tagline font-serif">
-            Mostly thinking. Sometimes shipping.
-          </h1>
+        {/* Middle — hero name + context */}
+        <section style={{ marginTop: "clamp(4rem, 10vh, 8rem)" }}>
+          <HeroName />
           <p className="context mt-5">
             Building the platform for physical decision-making at Bricks.
           </p>
         </section>
 
-        {/* Bottom row — availability + nav */}
-        <footer className="bottom-row flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between">
+        {/* Bottom row — availability + nav, pushed to bottom */}
+        <footer className="bottom-row mt-auto flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between">
           <p className="availability">Taking on a few engagements a year.</p>
           <nav className="flex gap-6">
             <Link href="/work" className="nav-link">

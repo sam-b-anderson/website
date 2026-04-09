@@ -135,7 +135,6 @@
 
   /* Site palette */
   --color-bg: oklch(97% 0.008 85);
-  --color-lit: oklch(99% 0.015 85);
   --color-ink: oklch(18% 0.008 60);
   --color-muted: oklch(45% 0.01 70);
   --color-subtle: oklch(52% 0.012 80);
@@ -208,6 +207,29 @@
     font-feature-settings: "kern", "liga";
   }
 
+  /* Paper grain texture */
+  .paper-bg {
+    position: relative;
+  }
+
+  .paper-bg::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.045;
+    z-index: 1;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0.1'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    mix-blend-mode: multiply;
+  }
+
+  @media print {
+    .paper-bg::after {
+      display: none;
+    }
+  }
+
   /* Front door typography */
   .eyebrow {
     font-size: 0.6875rem;
@@ -217,13 +239,41 @@
     color: var(--color-subtle);
   }
 
-  .tagline {
+  .hero-name {
     font-size: clamp(1.875rem, 3.5vw + 0.5rem, 3.25rem);
     line-height: 1.08;
     letter-spacing: -0.01em;
     font-weight: 400;
     color: var(--color-ink);
     max-width: 38rem;
+    position: relative;
+    cursor: default;
+  }
+
+  .hero-name-roman,
+  .hero-name-italic {
+    transition: opacity 400ms ease;
+  }
+
+  .hero-name-roman {
+    font-style: normal;
+  }
+
+  .hero-name-italic {
+    position: absolute;
+    inset: 0;
+    font-style: italic;
+    opacity: 0;
+  }
+
+  .hero-name.can-animate:hover .hero-name-roman,
+  .hero-name.can-animate:focus-within .hero-name-roman {
+    opacity: 0;
+  }
+
+  .hero-name.can-animate:hover .hero-name-italic,
+  .hero-name.can-animate:focus-within .hero-name-italic {
+    opacity: 1;
   }
 
   .context {
