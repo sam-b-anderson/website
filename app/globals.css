@@ -250,30 +250,14 @@
     cursor: default;
   }
 
-  .hero-name-roman,
-  .hero-name-italic {
-    transition: opacity 400ms ease;
+  /* Stacked layers for weight decay — first layer is in flow, rest are absolute */
+  .hero-name-layer {
+    display: block;
   }
 
-  .hero-name-roman {
-    font-style: normal;
-  }
-
-  .hero-name-italic {
+  .hero-name-layer:not(:first-child) {
     position: absolute;
     inset: 0;
-    font-style: italic;
-    opacity: 0;
-  }
-
-  .hero-name.can-animate:hover .hero-name-roman,
-  .hero-name.can-animate:focus-within .hero-name-roman {
-    opacity: 0;
-  }
-
-  .hero-name.can-animate:hover .hero-name-italic,
-  .hero-name.can-animate:focus-within .hero-name-italic {
-    opacity: 1;
   }
 
   .context {

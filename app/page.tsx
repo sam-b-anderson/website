@@ -32,7 +32,7 @@ export default function Home() {
 
         {/* Bottom row — availability + nav, pushed to bottom */}
         <footer className="bottom-row mt-auto flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between">
-          <p className="availability">Taking on a few engagements a year.</p>
+          <p className="availability">Open to a few engagements this year.</p>
           <nav className="flex gap-6">
             <Link href="/work" className="nav-link">
               Work
