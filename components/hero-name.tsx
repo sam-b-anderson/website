@@ -19,6 +19,7 @@ const WEIGHTS = [
 /* Timing tunables */
 const STEP_FORWARD_MS = 200; // ms between each decay step
 const STEP_REVERSE_MS = 250; // ms between each recovery step (25% slower than forward)
+const CROSSFADE_MS = 120; // ms for the opacity crossfade between weights
 const HOLD_BEFORE_REVERSE_MS = 1000; // ms to hold at decay before reversing
 
 export function HeroName() {
@@ -27,10 +28,28 @@ export function HeroName() {
   const stepping = useRef<ReturnType<typeof setTimeout> | null>(null);
   const canAnimate = useRef(false);
 
-  const setLayer = useCallback((index: number) => {
-    layersRef.current.forEach((el, i) => {
-      el.style.opacity = i === index ? "1" : "0";
+  const crossfadeTo = useCallback((index: number) => {
+    const layers = layersRef.current;
+    const prev = activeIndex.current;
+
+    /* Fade in the new layer */
+    layers[index].style.transition = `opacity ${CROSSFADE_MS}ms ease`;
+    layers[index].style.opacity = "1";
+
+    /* Fade out the old layer */
+    if (prev !== index) {
+      layers[prev].style.transition = `opacity ${CROSSFADE_MS}ms ease`;
+      layers[prev].style.opacity = "0";
+    }
+
+    /* Clean up any other layers that might be partially visible */
+    layers.forEach((el, i) => {
+      if (i !== index && i !== prev) {
+        el.style.transition = "none";
+        el.style.opacity = "0";
+      }
     });
+
     activeIndex.current = index;
   }, []);
 
@@ -54,13 +73,13 @@ export function HeroName() {
           stepping.current = null;
           return;
         }
-        setLayer(current + direction);
+        crossfadeTo(current + direction);
         stepping.current = setTimeout(tick, delay);
       }
 
       tick();
     },
-    [setLayer, stopStepping],
+    [crossfadeTo, stopStepping],
   );
 
   useEffect(() => {
