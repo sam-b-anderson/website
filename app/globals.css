@@ -4,17 +4,37 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@theme inline {
-  /* Fonts — self-hosted via @fontsource */
-  --font-sans: "Inter Variable", system-ui, sans-serif;
-  --font-serif: "Fraunces Variable", Georgia, serif;
+/* Redaction 70 — self-hosted from /public/fonts/redaction/ */
+@font-face {
+  font-family: "Redaction";
+  src: url("/fonts/redaction/Redaction70-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
-  /* Site palette — placeholder, Session 1 will finalize */
-  --color-bg: oklch(98.5% 0.005 80);
-  --color-ink: oklch(20% 0.01 60);
-  --color-muted: oklch(50% 0.01 60);
-  --color-accent: oklch(55% 0.15 35);
-  --color-rule: oklch(90% 0.005 80);
+@font-face {
+  font-family: "Redaction";
+  src: url("/fonts/redaction/Redaction70-Italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@theme inline {
+  /* Fonts */
+  --font-sans: "Inter Variable", system-ui, sans-serif;
+  --font-serif: "Redaction", "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  /* Site palette */
+  --color-bg: oklch(97% 0.008 85);
+  --color-lit: oklch(99% 0.015 85);
+  --color-ink: oklch(18% 0.008 60);
+  --color-muted: oklch(45% 0.01 70);
+  --color-subtle: oklch(52% 0.012 80);
+  --color-rule: oklch(85% 0.01 85);
+  --color-accent: oklch(55% 0.14 55);
 
   /* shadcn theme tokens */
   --color-background: var(--background);
@@ -79,6 +99,66 @@
     background: var(--color-bg);
     color: var(--color-ink);
     font-family: var(--font-sans);
+    font-feature-settings: "kern", "liga";
+  }
+
+  /* Front door typography */
+  .eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--color-subtle);
+  }
+
+  .tagline {
+    font-size: clamp(1.875rem, 3.5vw + 0.5rem, 3.25rem);
+    line-height: 1.08;
+    letter-spacing: -0.01em;
+    font-weight: 400;
+    color: var(--color-ink);
+    max-width: 38rem;
+  }
+
+  .context {
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    font-weight: 400;
+    line-height: 1.55;
+    color: var(--color-muted);
+    max-width: 34rem;
+  }
+
+  .availability {
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: var(--color-subtle);
+  }
+
+  .bottom-row {
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--color-rule);
+  }
+
+  .nav-link {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-subtle);
+    padding-bottom: 1px;
+    transition: color 200ms ease-out, border-color 200ms ease-out;
+  }
+
+  .nav-link:hover {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
+  .nav-link:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: 2px;
   }
 
   @media (prefers-reduced-motion: reduce) {
