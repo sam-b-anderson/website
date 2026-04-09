@@ -17,23 +17,15 @@ const WEIGHTS = [
 ] as const;
 
 /* Timing tunables */
-const STEP_FORWARD_MS = 120; // ms per decay step on hover
-const STEP_REVERSE_MS = 80; // ms per recovery step on leave
-const FADE_DURATION_MS = 200; // CSS transition duration for each layer
+const STEP_FORWARD_MS = 200; // ms per decay step on hover
+const STEP_REVERSE_MS = 100; // ms per recovery step on leave
+const FADE_DURATION_MS = 250; // CSS transition duration for each layer
 
 export function HeroName() {
-  const containerRef = useRef<HTMLHeadingElement>(null);
   const layersRef = useRef<HTMLSpanElement[]>([]);
   const activeIndex = useRef(0);
   const stepping = useRef<ReturnType<typeof setTimeout> | null>(null);
   const canAnimate = useRef(false);
-
-  const setLayer = useCallback((index: number) => {
-    layersRef.current.forEach((el, i) => {
-      el.style.opacity = i === index ? "1" : "0";
-    });
-    activeIndex.current = index;
-  }, []);
 
   const stopStepping = useCallback(() => {
     if (stepping.current !== null) {
@@ -47,8 +39,7 @@ export function HeroName() {
       stopStepping();
 
       const direction = target > activeIndex.current ? 1 : -1;
-      const delay =
-        direction === 1 ? STEP_FORWARD_MS : STEP_REVERSE_MS;
+      const delay = direction === 1 ? STEP_FORWARD_MS : STEP_REVERSE_MS;
 
       function tick() {
         const current = activeIndex.current;
@@ -56,14 +47,24 @@ export function HeroName() {
           stepping.current = null;
           return;
         }
-        const next = current + direction;
-        setLayer(next);
+
+        if (direction === 1) {
+          /* Forward: fade IN the next layer on top (layers accumulate) */
+          const next = current + 1;
+          layersRef.current[next].style.opacity = "1";
+          activeIndex.current = next;
+        } else {
+          /* Reverse: fade OUT the current top layer (layers peel off) */
+          layersRef.current[current].style.opacity = "0";
+          activeIndex.current = current - 1;
+        }
+
         stepping.current = setTimeout(tick, delay);
       }
 
       tick();
     },
-    [setLayer, stopStepping],
+    [stopStepping],
   );
 
   useEffect(() => {
@@ -76,17 +77,16 @@ export function HeroName() {
 
   const onEnter = useCallback(() => {
     if (!canAnimate.current) return;
-    stepTo(WEIGHTS.length - 1); // decay to max
+    stepTo(WEIGHTS.length - 1);
   }, [stepTo]);
 
   const onLeave = useCallback(() => {
     if (!canAnimate.current) return;
-    stepTo(0); // recover to clean
+    stepTo(0);
   }, [stepTo]);
 
   return (
     <h1
-      ref={containerRef}
       className="hero-name"
       onPointerEnter={onEnter}
       onPointerLeave={onLeave}
