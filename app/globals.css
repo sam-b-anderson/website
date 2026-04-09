@@ -4,10 +4,11 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Redaction 70 — self-hosted from /public/fonts/redaction/ */
+/* Redaction — self-hosted from /public/fonts/redaction/
+   No number = full legibility. 10→100 = increasing degradation. */
 @font-face {
   font-family: "Redaction";
-  src: url("/fonts/redaction/Redaction70-Regular.woff2") format("woff2");
+  src: url("/fonts/redaction/Redaction-Regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -15,7 +16,112 @@
 
 @font-face {
   font-family: "Redaction";
+  src: url("/fonts/redaction/Redaction-Italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Redaction";
+  src: url("/fonts/redaction/Redaction-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Degraded variants — available as separate font families for stylistic use */
+@font-face {
+  font-family: "Redaction 10";
+  src: url("/fonts/redaction/Redaction10-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Redaction 10";
+  src: url("/fonts/redaction/Redaction10-Italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Redaction 20";
+  src: url("/fonts/redaction/Redaction20-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Redaction 20";
+  src: url("/fonts/redaction/Redaction20-Italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Redaction 35";
+  src: url("/fonts/redaction/Redaction35-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Redaction 35";
+  src: url("/fonts/redaction/Redaction35-Italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Redaction 50";
+  src: url("/fonts/redaction/Redaction50-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Redaction 50";
+  src: url("/fonts/redaction/Redaction50-Italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Redaction 70";
+  src: url("/fonts/redaction/Redaction70-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Redaction 70";
   src: url("/fonts/redaction/Redaction70-Italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Redaction 100";
+  src: url("/fonts/redaction/Redaction100-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Redaction 100";
+  src: url("/fonts/redaction/Redaction100-Italic.woff2") format("woff2");
   font-weight: 400;
   font-style: italic;
   font-display: swap;
