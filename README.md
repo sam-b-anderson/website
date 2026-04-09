@@ -24,3 +24,4 @@ npm run lint     # ESLint
 ## Session history
 
 - **Session 0** — Foundation setup (2026-04-09)
+- **Session 1** — Front door: Redaction hero type, warm paper palette, cursor flashlight (2026-04-09)
