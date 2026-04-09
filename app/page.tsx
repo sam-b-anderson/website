@@ -36,6 +36,9 @@ export default function Home() {
             <Link href="/work" className="nav-link">
               Work
             </Link>
+            <Link href="/projects" className="nav-link">
+              Projects
+            </Link>
             <Link href="/about" className="nav-link">
               About
             </Link>
