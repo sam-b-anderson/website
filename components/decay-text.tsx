@@ -1,17 +1,15 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import { decayState, MAX_DECAY } from "@/lib/decay-state";
+import { decayState } from "@/lib/decay-state";
 
 /**
  * DecayText — secondary text that goes through its own Redaction weight
- * progression as the hero name is scrubbed. Reads decay level from shared
- * state, applies stacked-layer crossfade similar to the hero name.
+ * progression during the FOREST GROWTH phase. Does not decay during the
+ * scrubbing phase — only starts decaying once the forest begins growing.
  *
- * The "clean" font (default Inter) is the starting point. As decay
- * progresses, the text passes through progressively degraded Redaction
- * weights, ending at Redaction 70 (slightly less heavy than the hero's
- * Redaction 100).
+ * Reads decayState.forestProgress (0..1) to determine its position in
+ * the decay stack.
  */
 
 const STACK = [
@@ -29,8 +27,8 @@ const CLEAN_INDEX = 0;
 interface Props {
   children: React.ReactNode;
   className?: string;
-  /** Decay level offset — secondary text starts decaying after the hero
-      has already started. Higher = more delay. */
+  /** Forest progress offset (0..1) — text starts decaying after the
+      forest has reached this progress. 0 = decays immediately with growth. */
   delay?: number;
   /** Override the clean (starting) font. */
   cleanFont?: string;
@@ -39,7 +37,7 @@ interface Props {
 export function DecayText({
   children,
   className,
-  delay = 1,
+  delay = 0,
   cleanFont,
 }: Props) {
   const layersRef = useRef<(HTMLSpanElement | null)[]>([]);
@@ -52,15 +50,15 @@ export function DecayText({
     if (reducedMotion.matches || !finePointer.matches) return;
 
     let rafId = 0;
-    let lastLevel = -1;
+    let lastT = -1;
 
     const tick = () => {
-      const level = decayState.level;
-      if (level !== lastLevel) {
-        /* Apply delay — secondary text only starts decaying after hero
-           has reached `delay` decay level */
-        const adjusted = Math.max(0, level - delay);
-        const range = MAX_DECAY - delay;
+      const fp = decayState.forestProgress;
+      if (fp !== lastT) {
+        /* Apply delay — text only starts decaying after forest progress
+           passes the delay threshold */
+        const adjusted = Math.max(0, fp - delay);
+        const range = 1 - delay;
         const t = range > 0 ? Math.min(1, adjusted / range) : 0;
         const targetPos = t * STACK_MAX;
 
@@ -79,7 +77,7 @@ export function DecayText({
           }
           el.style.opacity = String(opacity);
         }
-        lastLevel = level;
+        lastT = fp;
       }
       rafId = requestAnimationFrame(tick);
     };

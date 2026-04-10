@@ -26,7 +26,8 @@ const CLEAN_INDEX = STACK.length - 1;
 
 /* Tunables */
 const DISTANCE_FOR_FULL = 3000; // px of cursor travel for full decay
-const RECOVERY_DELAY_MS = 1500; // pause after cursor leaves before recovery starts
+const RECOVERY_DELAY_MS = 1500; // pause after cursor leaves before recovery starts (when not yet in growth phase)
+const GROWTH_COOLDOWN_MS = 3000; // grace period after cursor leaves during growth phase before forest recedes
 const RECOVERY_SPEED = 0.024; // recovery rate (distance decay per second as fraction of full)
 
 /* Color interpolation — text shifts from warm near-black to warm gray */
@@ -83,7 +84,8 @@ export function HeroName() {
     let lastX = 0;
     let lastY = 0;
     let frameDist = 0;
-    let isRecovering = false;
+    let isGrowing = false; // true during growth phase (forest growing or paused in cooldown)
+    let isRecovering = false; // true after growth phase ends, while text recovers
     let recoveryTimer: ReturnType<typeof setTimeout> | null = null;
     let lastTime = performance.now();
     let rafId = 0;
@@ -98,9 +100,10 @@ export function HeroName() {
 
     /* ---- apply opacity + color for current decayLevel ---- */
     const applyDecay = () => {
-      /* Publish to shared state so forest-reveal can read it */
+      /* Publish to shared state so forest-reveal + decay-text can read it */
       decayState.level = decayLevel;
-      /* Publish to CSS variable for text fade effects */
+      decayState.isGrowing = isGrowing;
+      /* Publish to CSS variable for the bottom-row border fade */
       document.documentElement.style.setProperty(
         "--decay-progress",
         String(decayLevel / MAX_DECAY),
@@ -191,15 +194,25 @@ export function HeroName() {
       const dt = (now - lastTime) / 1000;
       lastTime = now;
 
-      if (isOnHero) {
+      /* Scrubbing — accumulate distance, only meaningful before growth phase.
+         Once isGrowing is true, scrubbing stops affecting decayLevel. */
+      if (isOnHero && !isGrowing) {
         totalDistance += frameDist;
         const normalizedDist = Math.min(1, totalDistance / DISTANCE_FOR_FULL);
         decayLevel = Math.min(MAX_DECAY, Math.sqrt(normalizedDist) * MAX_DECAY);
+
+        /* Trigger growth phase when fully decayed */
+        if (decayLevel >= MAX_DECAY - 0.05) {
+          decayLevel = MAX_DECAY;
+          isGrowing = true;
+        }
+
         if (frameDist > 2) {
           spawnDust(lastX, lastY, Math.min(frameDist / 3, 8));
         }
       }
 
+      /* Recovery — only after growth phase has ended (or after a partial scrub) */
       if (isRecovering) {
         totalDistance = Math.max(
           0,
@@ -223,6 +236,9 @@ export function HeroName() {
     /* ---- pointer handlers ---- */
     const onEnter = () => {
       isOnHero = true;
+      /* Cancel any in-flight cooldown or recovery — returning the cursor
+         either resumes growth (if cooldown was active) or lets the user
+         scrub again (if recovery was active). */
       isRecovering = false;
       if (recoveryTimer) {
         clearTimeout(recoveryTimer);
@@ -241,7 +257,16 @@ export function HeroName() {
     const onLeave = () => {
       isOnHero = false;
       if (recoveryTimer) clearTimeout(recoveryTimer);
-      if (decayLevel > 0) {
+
+      if (isGrowing) {
+        /* Growth phase active — wait 3s, then end growth and start recovery.
+           If user returns within 3s, this timer is cancelled and growth resumes. */
+        recoveryTimer = setTimeout(() => {
+          isGrowing = false;
+          isRecovering = true;
+        }, GROWTH_COOLDOWN_MS);
+      } else if (decayLevel > 0) {
+        /* Normal partial-scrub recovery */
         recoveryTimer = setTimeout(() => {
           isRecovering = true;
         }, RECOVERY_DELAY_MS);

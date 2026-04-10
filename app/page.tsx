@@ -21,7 +21,7 @@ export default function Home() {
         <header className="flex justify-end">
           <DecayText
             className="eyebrow font-mono"
-            delay={1.5}
+            delay={0.15}
             cleanFont='"JetBrains Mono", monospace'
           >
             sambanderson.com &middot; EST. 2026
@@ -31,7 +31,7 @@ export default function Home() {
         {/* Middle — hero name + context */}
         <section style={{ marginTop: "clamp(4rem, 10vh, 8rem)" }}>
           <HeroName />
-          <DecayText className="context mt-5" delay={1}>
+          <DecayText className="context mt-5" delay={0}>
             Building digital products that shape how the physical world
             operates.
           </DecayText>
@@ -39,18 +39,18 @@ export default function Home() {
 
         {/* Bottom row — availability + nav, pushed to bottom */}
         <footer className="bottom-row mt-auto flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between">
-          <DecayText className="availability" delay={1.5}>
+          <DecayText className="availability" delay={0.15}>
             Open to a few engagements this year.
           </DecayText>
           <nav className="flex gap-6">
             <Link href="/work" className="nav-link">
-              <DecayText delay={2}>Work</DecayText>
+              <DecayText delay={0.3}>Work</DecayText>
             </Link>
             <Link href="/projects" className="nav-link">
-              <DecayText delay={2}>Projects</DecayText>
+              <DecayText delay={0.3}>Projects</DecayText>
             </Link>
             <Link href="/about" className="nav-link">
-              <DecayText delay={2}>About</DecayText>
+              <DecayText delay={0.3}>About</DecayText>
             </Link>
           </nav>
         </footer>

@@ -1,17 +1,14 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { decayState, MAX_DECAY } from "@/lib/decay-state";
+import { decayState } from "@/lib/decay-state";
 
 /**
  * Forest reveal — a full-viewport canvas that grows a forest mass upward
- * from the bottom of the screen, but ONLY after the hero name has fully
- * decayed (reached Redaction 100). Once triggered, growth happens
- * automatically over time, independent of further scrubbing.
- *
- * The reveal uses Perlin noise to create an irregular, mossy boundary.
- * When the hero text drops back below max decay (recovery), the forest
- * retreats faster than it grew.
+ * from the bottom of the screen during the "growth phase" (managed by
+ * hero-name). Growth is time-based and independent of scrubbing once
+ * triggered. When the growth phase ends (3s after cursor leaves the hero),
+ * the forest retreats.
  */
 
 /* Noise scale — higher = more detailed mossy edge */
@@ -26,9 +23,6 @@ const PROGRESS_MAX = 1.1;
 /* Time-based growth (independent of scrubbing once triggered) */
 const GROWTH_DURATION_SEC = 18; /* time to fully reclaim */
 const RETREAT_DURATION_SEC = 4; /* faster retreat on recovery */
-
-/* Trigger threshold — forest only grows when decay is at this level or higher */
-const TRIGGER_LEVEL = MAX_DECAY - 0.05;
 
 export function ForestReveal() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -177,22 +171,25 @@ export function ForestReveal() {
       const dt = (now - lastTime) / 1000;
       lastTime = now;
 
-      const isFullyDecayed = decayState.level >= TRIGGER_LEVEL;
+      const isGrowing = decayState.isGrowing;
       let needsRender = false;
 
-      if (isFullyDecayed && forestProgress < 1) {
+      if (isGrowing && forestProgress < 1) {
         forestProgress = Math.min(
           1,
           forestProgress + dt / GROWTH_DURATION_SEC,
         );
         needsRender = true;
-      } else if (!isFullyDecayed && forestProgress > 0) {
+      } else if (!isGrowing && forestProgress > 0) {
         forestProgress = Math.max(
           0,
           forestProgress - dt / RETREAT_DURATION_SEC,
         );
         needsRender = true;
       }
+
+      /* Publish to shared state so decay-text can read it */
+      decayState.forestProgress = forestProgress;
 
       if (needsRender) {
         const progress =
