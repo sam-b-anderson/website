@@ -4,27 +4,31 @@ import { useEffect, useRef } from "react";
 import { decayState, MAX_DECAY } from "@/lib/decay-state";
 
 /**
- * Forest reveal — a full-viewport canvas that draws an organic forest mass
- * creeping from the bottom-right corner as the hero name decays.
+ * Forest reveal — a full-viewport canvas that grows a forest mass upward
+ * from the bottom of the screen, but ONLY after the hero name has fully
+ * decayed (reached Redaction 100). Once triggered, growth happens
+ * automatically over time, independent of further scrubbing.
  *
  * The reveal uses Perlin noise to create an irregular, mossy boundary.
- * Progress is driven by the shared decay state — scrubbing the hero name
- * grows the forest, recovery retreats it.
- *
- * The canvas writes both forest color and alpha directly in one pass
- * (no CSS mask dataURL round-trip).
+ * When the hero text drops back below max decay (recovery), the forest
+ * retreats faster than it grew.
  */
 
 /* Noise scale — higher = more detailed mossy edge */
 const NOISE_FREQ = 0.025;
 const NOISE_OCTAVES = 6;
 
-/* Map decayLevel (0..6) to forest progress.
-   At PROGRESS_MIN, the noise+threshold math produces alpha=0 everywhere
-   (fully invisible). At PROGRESS_MAX, alpha=1 everywhere (fully covered).
-   Min must be ≤ -0.5 because the noise can offset the threshold by up to 0.5. */
-const PROGRESS_MIN = -0.5; /* fully off-screen / invisible */
+/* Forest progress range — at PROGRESS_MIN the noise math produces alpha=0
+   everywhere (fully invisible). At PROGRESS_MAX, alpha=1 (fully covered). */
+const PROGRESS_MIN = -0.5;
 const PROGRESS_MAX = 1.1;
+
+/* Time-based growth (independent of scrubbing once triggered) */
+const GROWTH_DURATION_SEC = 18; /* time to fully reclaim */
+const RETREAT_DURATION_SEC = 4; /* faster retreat on recovery */
+
+/* Trigger threshold — forest only grows when decay is at this level or higher */
+const TRIGGER_LEVEL = MAX_DECAY - 0.05;
 
 export function ForestReveal() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -89,17 +93,15 @@ export function ForestReveal() {
       return val;
     };
 
-    /* ---- Pre-computed per-pixel static values ----
-       The noise pattern and distance field don't depend on progress.
-       Pre-compute them once so the per-frame work is just thresholding. */
+    /* ---- Pre-computed per-pixel static values ---- */
     let W = window.innerWidth;
     let H = window.innerHeight;
     const DOWNSCALE = 4;
 
     let fieldW = Math.ceil(W / DOWNSCALE);
     let fieldH = Math.ceil(H / DOWNSCALE);
-    /* For each pixel, stores (dist - noiseOffset) — lower values reveal first */
     let thresholdField = new Float32Array(fieldW * fieldH);
+    let imgData = ctx.createImageData(canvas.width, canvas.height);
 
     const buildField = () => {
       fieldW = Math.ceil(W / DOWNSCALE);
@@ -108,16 +110,13 @@ export function ForestReveal() {
 
       for (let py = 0; py < fieldH; py++) {
         for (let px = 0; px < fieldW; px++) {
-          const rx = px * DOWNSCALE;
           const ry = py * DOWNSCALE;
-          /* Normalized distance from bottom-right corner (0..~1.41) */
-          const dx = (W - rx) / W;
-          const dy = (H - ry) / H;
-          const dist = Math.sqrt(dx * dx + dy * dy) / Math.SQRT2;
-          /* Noise offset adds irregularity to the boundary */
-          const n = fbm(px * NOISE_FREQ, py * NOISE_FREQ, NOISE_OCTAVES) * 0.5 + 0.5;
+          /* VERTICAL distance from bottom edge — 0 at bottom, 1 at top.
+             This makes the forest grow straight up from the bottom. */
+          const dist = (H - ry) / H;
+          const n =
+            fbm(px * NOISE_FREQ, py * NOISE_FREQ, NOISE_OCTAVES) * 0.5 + 0.5;
           const edgeNoise = n * 0.5;
-          /* When threshold > dist - edgeNoise, pixel is revealed */
           thresholdField[py * fieldW + px] = dist - edgeNoise;
         }
       }
@@ -128,58 +127,79 @@ export function ForestReveal() {
       H = window.innerHeight;
       canvas.width = Math.ceil(W / DOWNSCALE);
       canvas.height = Math.ceil(H / DOWNSCALE);
+      imgData = ctx.createImageData(canvas.width, canvas.height);
       buildField();
     };
     resize();
     window.addEventListener("resize", resize);
 
     /* ---- Render forest canvas ---- */
-    const imgData = ctx.createImageData(canvas.width, canvas.height);
-    const d = imgData.data;
-
     const renderForest = (progress: number) => {
+      const d = imgData.data;
       const w = canvas.width;
       const h = canvas.height;
       const threshold = progress * 1.5;
 
-      for (let i = 0; i < w * h; i++) {
-        /* Distance from bottom-right for color gradient
-           Using the threshold field: dist - edgeNoise is stored */
-        const fieldVal = thresholdField[i];
-        const reveal = threshold - fieldVal;
-        const alpha = Math.max(0, Math.min(1, reveal * 3.5));
+      for (let py = 0; py < h; py++) {
+        /* Vertical color gradient — darker at the bottom, lighter higher up */
+        const verticalT = py / h; /* 0 top, 1 bottom */
+        const r = Math.round(lerp(75, 38, verticalT));
+        const g = Math.round(lerp(95, 55, verticalT));
+        const b = Math.round(lerp(60, 35, verticalT));
 
-        /* Forest color varies by distance from bottom-right (more opaque = deeper)
-           Approximate the radial gradient with sRGB values */
-        const centerness = Math.max(0, 1 - fieldVal); /* 0..~1, higher near corner */
-        /* Dark mossy green → lighter distant green */
-        const r = Math.round(lerp(70, 45, centerness));
-        const g = Math.round(lerp(90, 60, centerness));
-        const b = Math.round(lerp(55, 38, centerness));
+        for (let px = 0; px < w; px++) {
+          const i = py * w + px;
+          const fieldVal = thresholdField[i];
+          const reveal = threshold - fieldVal;
+          const alpha = Math.max(0, Math.min(1, reveal * 3.5));
 
-        const idx = i * 4;
-        d[idx] = r;
-        d[idx + 1] = g;
-        d[idx + 2] = b;
-        d[idx + 3] = Math.round(alpha * 255);
+          const idx = i * 4;
+          d[idx] = r;
+          d[idx + 1] = g;
+          d[idx + 2] = b;
+          d[idx + 3] = Math.round(alpha * 255);
+        }
       }
 
       ctx.putImageData(imgData, 0, 0);
     };
 
-    /* ---- Main loop ---- */
+    /* ---- Main loop ----
+       forestProgress (0..1) is independent of decay level — it grows on
+       its own clock once decay reaches max, retreats when it drops. */
     let rafId = 0;
-    let lastLevel = -1;
+    let forestProgress = 0;
+    let lastTime = performance.now();
+    /* Render the initial empty state once */
+    renderForest(PROGRESS_MIN);
 
-    const tick = () => {
-      const level = decayState.level;
-      /* Re-render whenever decay level changes (any amount) */
-      if (level !== lastLevel) {
-        const t = Math.max(0, Math.min(1, level / MAX_DECAY));
-        const progress = PROGRESS_MIN + t * (PROGRESS_MAX - PROGRESS_MIN);
-        renderForest(progress);
-        lastLevel = level;
+    const tick = (now: number) => {
+      const dt = (now - lastTime) / 1000;
+      lastTime = now;
+
+      const isFullyDecayed = decayState.level >= TRIGGER_LEVEL;
+      let needsRender = false;
+
+      if (isFullyDecayed && forestProgress < 1) {
+        forestProgress = Math.min(
+          1,
+          forestProgress + dt / GROWTH_DURATION_SEC,
+        );
+        needsRender = true;
+      } else if (!isFullyDecayed && forestProgress > 0) {
+        forestProgress = Math.max(
+          0,
+          forestProgress - dt / RETREAT_DURATION_SEC,
+        );
+        needsRender = true;
       }
+
+      if (needsRender) {
+        const progress =
+          PROGRESS_MIN + forestProgress * (PROGRESS_MAX - PROGRESS_MIN);
+        renderForest(progress);
+      }
+
       rafId = requestAnimationFrame(tick);
     };
 
@@ -201,7 +221,7 @@ export function ForestReveal() {
         width: "100%",
         height: "100%",
         pointerEvents: "none",
-        zIndex: 2, /* above paper-bg (z:1), below content (z:10) */
+        zIndex: 2,
       }}
     />
   );
