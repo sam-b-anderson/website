@@ -20,9 +20,10 @@ const NOISE_FREQ = 0.025;
 const NOISE_OCTAVES = 6;
 
 /* Map decayLevel (0..6) to forest progress.
-   Negative start means the spread begins OFF-SCREEN while the text is
-   still decaying, so it doesn't snap into view at max decay. */
-const PROGRESS_MIN = -0.2; /* off-screen */
+   At PROGRESS_MIN, the noise+threshold math produces alpha=0 everywhere
+   (fully invisible). At PROGRESS_MAX, alpha=1 everywhere (fully covered).
+   Min must be ≤ -0.5 because the noise can offset the threshold by up to 0.5. */
+const PROGRESS_MIN = -0.5; /* fully off-screen / invisible */
 const PROGRESS_MAX = 1.1;
 
 export function ForestReveal() {
@@ -168,18 +169,17 @@ export function ForestReveal() {
 
     /* ---- Main loop ---- */
     let rafId = 0;
-    let lastProgress = -999;
+    let lastLevel = -1;
 
     const tick = () => {
-      const t = Math.max(0, Math.min(1, decayState.level / MAX_DECAY));
-      const progress = PROGRESS_MIN + t * (PROGRESS_MAX - PROGRESS_MIN);
-
-      /* Only re-render if progress changed meaningfully */
-      if (Math.abs(progress - lastProgress) > 0.003) {
+      const level = decayState.level;
+      /* Re-render whenever decay level changes (any amount) */
+      if (level !== lastLevel) {
+        const t = Math.max(0, Math.min(1, level / MAX_DECAY));
+        const progress = PROGRESS_MIN + t * (PROGRESS_MAX - PROGRESS_MIN);
         renderForest(progress);
-        lastProgress = progress;
+        lastLevel = level;
       }
-
       rafId = requestAnimationFrame(tick);
     };
 

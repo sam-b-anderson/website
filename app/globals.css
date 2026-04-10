@@ -230,17 +230,14 @@
     }
   }
 
-  /* Decay-driven text fade — secondary text fades as the hero name is scrubbed */
+  /* Decay progress — set by hero-name.tsx, used for the bottom-row border */
   :root {
     --decay-progress: 0;
   }
 
-  .eyebrow,
-  .context,
-  .availability,
-  .nav-link,
+  /* Bottom-row border fades since secondary text uses font-based decay */
   .bottom-row {
-    opacity: calc(1 - var(--decay-progress) * 0.85);
+    border-top-color: oklch(85% 0.01 85 / calc(1 - var(--decay-progress) * 0.85));
   }
 
   /* Front door typography */
