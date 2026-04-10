@@ -230,6 +230,19 @@
     }
   }
 
+  /* Decay-driven text fade — secondary text fades as the hero name is scrubbed */
+  :root {
+    --decay-progress: 0;
+  }
+
+  .eyebrow,
+  .context,
+  .availability,
+  .nav-link,
+  .bottom-row {
+    opacity: calc(1 - var(--decay-progress) * 0.85);
+  }
+
   /* Front door typography */
   .eyebrow {
     font-size: 0.6875rem;

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { HeroName } from "@/components/hero-name";
+import { ForestReveal } from "@/components/forest-reveal";
 
 export default function Home() {
   return (
@@ -7,6 +8,7 @@ export default function Home() {
       className="paper-bg relative min-h-dvh"
       style={{ background: "var(--color-bg)" }}
     >
+      <ForestReveal />
       <div
         className="front-door relative z-10 mx-auto flex min-h-dvh flex-col"
         style={{

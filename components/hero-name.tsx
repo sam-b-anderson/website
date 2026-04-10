@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect } from "react";
+import { decayState } from "@/lib/decay-state";
 
 /**
  * Redaction weight stack, rendered bottom-to-top in the DOM.
@@ -97,6 +98,14 @@ export function HeroName() {
 
     /* ---- apply opacity + color for current decayLevel ---- */
     const applyDecay = () => {
+      /* Publish to shared state so forest-reveal can read it */
+      decayState.level = decayLevel;
+      /* Publish to CSS variable for text fade effects */
+      document.documentElement.style.setProperty(
+        "--decay-progress",
+        String(decayLevel / MAX_DECAY),
+      );
+
       hero.style.transition = "none";
       hero.style.color = getDecayColor(decayLevel);
       for (let i = 0; i < STACK.length; i++) {
