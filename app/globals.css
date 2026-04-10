@@ -250,14 +250,10 @@
     cursor: default;
   }
 
-  /* Stacked layers for weight decay — first layer is in flow, rest are absolute */
+  /* Stacked layers for weight decay — positioning controlled inline by JS */
   .hero-name-layer {
     display: block;
-  }
-
-  .hero-name-layer:not(:first-child) {
-    position: absolute;
-    inset: 0;
+    white-space: nowrap;
   }
 
   .context {
